@@ -45,7 +45,7 @@ class TileMap {
             for (let y = 0; y < this.grid[x].length; y++) {
                 switch (this.grid[x][y]) {
                     case TileMap.GRASS:
-                        ctx.fillStyle = "#68B052";
+                        ctx.fillStyle = "white"; //"#68B052";
                         ctx.globalAlpha = 1;
                         ctx.fillRect(x * this.dx, y * this.dy, this.dx, this.dy);
                         break;

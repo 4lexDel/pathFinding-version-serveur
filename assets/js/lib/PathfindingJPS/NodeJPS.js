@@ -1,9 +1,12 @@
-class NodePathfinder {
+class NodeJPS {
     constructor(id, x, y) {
         this.id = id;
 
         this.x = x;
         this.y = y;
+
+        this.dx = null;
+        this.dy = null;
         /*---------------*/
         //this.resetSolvingInformation();
         /*---------------*/
@@ -12,11 +15,6 @@ class NodePathfinder {
         this.fCost = -1;
 
         this.parentNode = null;
-
-        this.colorNode;
-
-        this.showCost = true;
-        this.useKey = false;
     }
 
     resetSolvingInformation() {
@@ -36,10 +34,8 @@ class NodePathfinder {
 
         if (currentParent == null) gCostTrans = 0; //dans le cas de start
         else {
-            gCostTrans = currentParent.gCost + this.calculateCost(currentParent.x, currentParent.y) * (this.id + 1); //AJOUT DE DIFFICULTE
+            gCostTrans = currentParent.gCost + this.calculateCost(currentParent.x, currentParent.y); //AJOUT DE DIFFICULTE
         }
-        //gCostTrans = 0;
-        //console.log(this.id);
 
         fCostTrans = hCostTrans + gCostTrans;
 

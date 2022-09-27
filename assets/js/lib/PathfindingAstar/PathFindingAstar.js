@@ -1,9 +1,9 @@
-class PathFinding {
+class PathFindingAstar {
     constructor(startCoords, finishCoords, grid) {
         this.i = 1;
         ///////////////////////
-        this.startNode = new NodePathfinder(0, startCoords.x, startCoords.y);
-        this.finishNode = new NodePathfinder(0, finishCoords.x, finishCoords.y);
+        this.startNode = new NodeAstar(0, startCoords.x, startCoords.y);
+        this.finishNode = new NodeAstar(0, finishCoords.x, finishCoords.y);
 
         this.grid = grid;
 
@@ -21,7 +21,7 @@ class PathFinding {
 
         for (var x = 0; x < this.nodes.length; x++) {
             for (var y = 0; y < this.nodes[0].length; y++) { //Create nodes instances
-                this.nodes[x][y] = new NodePathfinder(grid[x][y], x, y);
+                this.nodes[x][y] = new NodeAstar(grid[x][y], x, y);
             }
         }
 

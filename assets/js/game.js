@@ -9,10 +9,15 @@ var MOUSE_Y = 0;
 var WIDTH;
 var HEIGHT;
 
-resizeCanvas();
 
 var DEFAULT_SIZE = 32;
 
+var DEBUG = 0;
+var RELEASE = 1;
+
+var MODE = DEBUG;
+
+resizeCanvas();
 
 /**----------------------------------MAP INIT--------------------------------------------------------- */
 
@@ -37,8 +42,9 @@ var start = map.getStartCoordsWithoutObstacle();
 var finish = map.getFinishCoordsWithoutObstacle();
 
 
-var brush = TileMap.OBSTACLE;
-var showAllList = false;
+var brush = TileMap.OBSTACLE; //Pinceau
+var showAllList = false; //Detail du chemin
+var solvingMethod = false;
 
 
 test();
@@ -49,6 +55,10 @@ function draw() {
 
     if (map != undefined && decorationMap != undefined) {
         map.display(ctx);
+
+        decorationMap.writeSpecialPoint(start.x, start.y, TileMap.START);
+        decorationMap.writeSpecialPoint(finish.x, finish.y, TileMap.FINISH); ///WHUT
+
         decorationMap.display(ctx);
     }
 
@@ -56,18 +66,35 @@ function draw() {
 }
 
 function test() {
-    let pathfinding = new PathFinding(start, finish, map.grid);
+    console.log("--------------------------------------------------------");
+    console.time("JPS");
+    let pathfindingJPS = new PathFindingJPS(start, finish, map.grid);
+    let resultJPS = pathfindingJPS.process();
+    console.timeEnd("JPS");
+
+    console.time("Astar");
+    let pathfindingAstar = new PathFindingAstar(start, finish, map.grid);
+    let resultAStar = pathfindingAstar.process();
+    console.timeEnd("Astar");
+    console.log("--------------------------------------------------------");
+
+    let finalResult = null;
+
+    if (solvingMethod) {
+        finalResult = resultJPS;
+    } else finalResult = resultAStar;
+
     decorationMap.resetGrid();
 
-    let result = pathfinding.process();
-    if (result != null) {
-        result.pathList.shift();
+    if (finalResult != null) {
+        finalResult.pathList.shift();
         //console.log(path);
+
         if (showAllList) {
-            decorationMap.writelist(result.closeList, TileMap.CLOSE_LIST);
-            decorationMap.writelist(result.openList, TileMap.OPEN_LIST);
+            decorationMap.writelist(finalResult.closeList, TileMap.CLOSE_LIST);
+            decorationMap.writelist(finalResult.openList, TileMap.OPEN_LIST);
         }
-        decorationMap.writelist(result.pathList, TileMap.PATH_LIST);
+        decorationMap.writelist(finalResult.pathList, TileMap.PATH_LIST);
 
         decorationMap.writeSpecialPoint(start.x, start.y, TileMap.START);
         decorationMap.writeSpecialPoint(finish.x, finish.y, TileMap.FINISH);
@@ -82,14 +109,14 @@ function generateNewMaps() {
     resizeCanvas();
 
     let size = document.getElementById("numberCell").value;
-    console.log(size);
+    //console.log(size);
 
     allMap = generateMaps(size);
 
     map = allMap.editMap;
     decorationMap = allMap.decorationMap;
 
-    finish = map.getCoordsWithoutObstacle();
+    finish = map.getFinishCoordsWithoutObstacle();
 
     decorationMap.writeSpecialPoint(finish.x, finish.y, TileMap.FINISH);
 
@@ -146,8 +173,15 @@ function generateMaze() {
     }
 }
 
-function showList(params) {
+function settingsUpdate() {
     showAllList = document.getElementById("showListInput").checked;
+
+    let select = document.getElementById("solveMethod");
+    let value = select.options[select.selectedIndex].value;
+
+    if (value == "aStar") solvingMethod = false;
+    else solvingMethod = true;
+
     test();
 }
 
@@ -161,7 +195,7 @@ document.getElementById("resetMap").addEventListener("click", function() {
 
 document.getElementById("getBrush").addEventListener("click", changeBrush);
 
-document.getElementById("showListButton").addEventListener("click", showList);
+document.getElementById("validSettings").addEventListener("click", settingsUpdate);
 
 document.getElementById("generateMaze").addEventListener("click", generateMaze);
 

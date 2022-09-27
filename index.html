@@ -76,9 +76,14 @@
         <div class="modal-back"></div>
         <div class="modal-container">
             <h1>Paramètres</h1><br>
+            <label for="solveMethod">Algorithme utilisé : </label>
+            <select name="solveMethod" id="solveMethod">
+                <option value="aStar">A*</option>                    
+                <option value="JPS">JPS</option>
+            </select><br><br>
             <input type="checkbox" name="showList" id="showListInput">
             <label for="showList"> Afficher le chemin de résolution détaillé</label><br><br>
-            <button id="showListButton" class="modal-close">Valider</button>
+            <button id="validSettings" class="modal-close">Valider</button>
             <br><br>
             <hr>
             <button class="modal-close">Fermer</button>
@@ -89,13 +94,15 @@
 
     <script src="assets/modal/js/modal.js"></script>
 
-    <script src="assets/js/lib/Pathfinder/NodePathfinder.js"></script>
+    <script src="assets/js/lib/PathfindingAstar/NodeAstar.js"></script>
+    <script src="assets/js/lib/PathfindingJPS/NodeJPS.js"></script>
     <script src="assets/js/lib/MazeFusion/NodeMazeFusion.js"></script>
     <script src="assets/js/lib/MazeDFS/NodeMazeDFS.js"></script>
 
     <script src="assets/js/utils.js"></script>
     <script src="assets/js/TileMap.js"></script>
-    <script src="assets/js/lib/Pathfinder/PathFinding.js"></script>
+    <script src="assets/js/lib/PathfindingAstar/PathFindingAstar.js"></script>
+    <script src="assets/js/lib/PathfindingJPS/PathFindingJPS.js"></script>
     <script src="assets/js/lib/MazeFusion/MazeFusion.js"></script>
     <script src="assets/js/lib/MazeDFS/MazeDFS.js"></script>
     <script src="assets/js/game.js"></script>
