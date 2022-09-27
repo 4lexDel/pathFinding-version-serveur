@@ -78,8 +78,8 @@ class MazeFusion { //https://www.youtube.com/watch?v=diXAllbirZg&ab_channel=Math
             this.nbArea--;
 
             this.wallNodes = this.wallNodes.filter((node) => { return !node.isEqual(wallNode) });
-            console.log("New length : " + this.wallNodes.length);
-            console.log("New nbArea : " + this.nbArea);
+            // console.log("New length : " + this.wallNodes.length);
+            // console.log("New nbArea : " + this.nbArea);
             return true;
         }
         return false;
