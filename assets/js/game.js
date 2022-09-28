@@ -43,8 +43,8 @@ var finish = map.getFinishCoordsWithoutObstacle();
 
 
 var brush = TileMap.OBSTACLE; //Pinceau
-var showAllList = false; //Detail du chemin
-var solvingMethod = false;
+var showAllList = true; //Detail du chemin
+var solvingMethod = true;
 
 
 test();

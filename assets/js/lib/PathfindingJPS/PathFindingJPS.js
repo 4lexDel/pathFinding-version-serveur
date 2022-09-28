@@ -92,21 +92,11 @@ class PathFindingJPS { //https://zerowidth.com/2013/a-visual-explanation-of-jump
         // console.log(jumpPoints);
 
         jumpPoints = jumpPoints.map((node) => {
-                node.refreshCost(currentNode, this.finishNode); //On calcul leurs coûts (les couts restent inchangés si ils sont plus important)           
-                if (!this.findNodeInList(this.openList, node)) this.openList.push(node); //On ajoute les voisins dans l'openList si ils y sont pas déja !   //A VOIR
+            node.refreshCost(currentNode, this.finishNode); //On calcul leurs coûts (les couts restent inchangés si ils sont plus important)           
+            if (!this.findNodeInList(this.openList, node)) this.openList.push(node); //On ajoute les voisins dans l'openList si ils y sont pas déja !   //A VOIR
 
-                return node;
-            })
-            // let neighbours = this.getNeighbours(currentNode); //On récupère les voisins du noeud actuel////////////////////////
-
-        // ////console.log("nb voisins : " + neighbours.length);
-
-        // neighbours = neighbours.map((node) => { //RETURN UTILE ??????????????
-        //     node.refreshCost(currentNode, this.finishNode); //On calcul leurs coûts (les couts restent inchangés si ils sont plus important)           
-        //     if (!this.findNodeInList(this.openList, node)) this.openList.push(node); //On ajoute les voisins dans l'openList si ils y sont pas déja !
-
-        //     return node;
-        // })
+            return node;
+        });
 
         return 0; //Si on est la c'est qu'on a pas encore trouvé la sortie
     }
@@ -124,28 +114,38 @@ class PathFindingJPS { //https://zerowidth.com/2013/a-visual-explanation-of-jump
     }
 
     getAllJumpPointFromNode(node) {
+        var jumpPoints = [];
+
+        if (node.dx == null && node.dy == null) { //Toutes les directions au debut
+            jumpPoints = jumpPoints.concat(this.getJumpPointFromNodeInAllDirection(node));
+        } else {
+            jumpPoints.push(this.getJumpPoint(node, node.dx, node.dy)); //On prolonge l'ancien noeud !
+
+            if (node.dx != 0 && node.dy != 0) { //diago
+                jumpPoints.push(this.getJumpPoint(node, node.dx, 0)); //horizontal
+                jumpPoints.push(this.getJumpPoint(node, 0, node.dy)); //vertical
+            }
+
+            jumpPoints = jumpPoints.concat(this.getForcedNeighbours(node, node.dx, node.dy)); //ON AJOUTE LES VOISINS FORCES !
+        }
+
+        jumpPoints = jumpPoints.filter((node) => { return node != null });
+
+        return jumpPoints;
+    }
+
+    getJumpPointFromNodeInAllDirection(node) {
         let jumpPoints = [];
 
-        if (node.dx != -1) jumpPoints.push(this.getJumpPoint(node, 1, 0)); //Droite
-        if (node.dx != 1) jumpPoints.push(this.getJumpPoint(node, -1, 0)); //Gauche
-        if (node.dy != -1) jumpPoints.push(this.getJumpPoint(node, 0, 1)); //Bas
-        if (node.dy != 1) jumpPoints.push(this.getJumpPoint(node, 0, -1)); //Haut
+        jumpPoints.push(this.getJumpPoint(node, 1, 0)); //Droite
+        jumpPoints.push(this.getJumpPoint(node, -1, 0)); //Gauche
+        jumpPoints.push(this.getJumpPoint(node, 0, 1)); //Bas
+        jumpPoints.push(this.getJumpPoint(node, 0, -1)); //Haut
 
-        if (node.dx != -1 || node.dy != -1) jumpPoints.push(this.getJumpPoint(node, 1, 1)); //Bas Droite
-        if (node.dx != 1 || node.dy != -1) jumpPoints.push(this.getJumpPoint(node, -1, 1)); //Bas Gauche
-        if (node.dx != -1 || node.dy != 1) jumpPoints.push(this.getJumpPoint(node, 1, -1)); //Haut droite
-        if (node.dx != 1 || node.dy != 1) jumpPoints.push(this.getJumpPoint(node, -1, -1)); //Haut gauche
-
-
-        // jumpPoints.push(this.getJumpPoint(node, 1, 0)); //Droite
-        // jumpPoints.push(this.getJumpPoint(node, -1, 0)); //Gauche
-        // jumpPoints.push(this.getJumpPoint(node, 0, 1)); //Bas
-        // jumpPoints.push(this.getJumpPoint(node, 0, -1)); //Haut
-        // jumpPoints.push(this.getJumpPoint(node, 1, 1)); //Bas Droite
-        // jumpPoints.push(this.getJumpPoint(node, -1, 1)); //Bas Gauche
-        // jumpPoints.push(this.getJumpPoint(node, 1, -1)); //Haut droite
-        // jumpPoints.push(this.getJumpPoint(node, -1, -1)); //Haut gauche
-
+        jumpPoints.push(this.getJumpPoint(node, 1, 1)); //Bas Droite
+        jumpPoints.push(this.getJumpPoint(node, -1, 1)); //Bas Gauche
+        jumpPoints.push(this.getJumpPoint(node, 1, -1)); //Haut droite
+        jumpPoints.push(this.getJumpPoint(node, -1, -1)); //Haut gauche
 
         jumpPoints = jumpPoints.filter((node) => { return node != null });
 
@@ -155,7 +155,7 @@ class PathFindingJPS { //https://zerowidth.com/2013/a-visual-explanation-of-jump
     getJumpPoint(currentNode, dx, dy) {
         if ((dx != 0 && dy == 0) || (dx == 0 && dy != 0)) {
             return this.checkJumpPointInLine(currentNode.x + dx, currentNode.y + dy, dx, dy); //decalage
-        } else {
+        } else if (dx != 0 && dy != 0) {
             return this.checkJumpPointInDiagonal(currentNode.x + dx, currentNode.y + dy, dx, dy);
         }
     }
@@ -172,8 +172,15 @@ class PathFindingJPS { //https://zerowidth.com/2013/a-visual-explanation-of-jump
                 let secondSideNode = this.getNode(x, y - dy, 0, 0);
 
                 if ((node != null && node.id != -1) && (firstSideNode != null && secondSideNode != null && (firstSideNode.id != -1 || secondSideNode.id != -1))) {
-                    let firstLine = this.checkJumpPointInLine(x, y, dx, 0);
-                    let secondLine = this.checkJumpPointInLine(x, y, 0, dy);
+                    let forcedNeighbours = this.getForcedNeighbours(node, dx, dy);
+                    if (forcedNeighbours.length > 0) {
+                        node.dx = dx;
+                        node.dy = dy;
+                        return node;
+                    }
+
+                    let firstLine = this.checkJumpPointInLine(x + dx, y, dx, 0); //Decalage pour eviter de detecter un faux positif !
+                    let secondLine = this.checkJumpPointInLine(x, y + dy, 0, dy);
 
                     if (firstLine != null || secondLine != null) { //Est ce que une des 2 lignes à donné un résultat ?
                         node.dx = dx;
@@ -190,6 +197,7 @@ class PathFindingJPS { //https://zerowidth.com/2013/a-visual-explanation-of-jump
     }
 
     checkJumpPointInLine(ox, oy, dx, dy) { //TEST UN PATERN CARACTERISTIQUE D'UN POINT "INTERESSANT" ET LE RETOURNE SI IL EXISTE...
+        // console.log("OX : " + ox + " | OY : " + oy + " | DX : " + dx + " | DY : " + dy);
         if (dx != 0 && dy == 0) { //Horizontal
             let x = ox;
             let y = oy;
@@ -200,25 +208,20 @@ class PathFindingJPS { //https://zerowidth.com/2013/a-visual-explanation-of-jump
                 let node = this.getNode(x, y, 0, 0); //Noeud actuel dans la recursivité
 
                 if (node != null && node.id != -1) {
-                    if (node.isEqual(this.finishNode)) return node; //On est sur l'arrivée
+                    if (node.isEqual(this.finishNode)) {
+                        node.dx = dx;
+                        node.dy = 0;
+                        return node;
+                    } //On est sur l'arrivée
 
-                    let nextNode = this.getNode(x, y, dx, 0); //Juste devant
-
-                    if (nextNode != null && nextNode.id != -1) { //est ce que ya de la place devant nous ?
-                        let topNode = this.getNode(x, y, 0, -1);
-                        let nextTopNode = this.getNode(x, y, dx, -1);
-
-                        let bottomNode = this.getNode(x, y, 0, 1);
-                        let nextBottomNode = this.getNode(x, y, dx, 1);
-
-                        if ((topNode != null && nextTopNode != null && topNode.id == -1 && nextTopNode.id != -1) ||
-                            (bottomNode != null && nextBottomNode != null && bottomNode.id == -1 && nextBottomNode.id != -1)) { //Obstacle en bas ou en haut et rien à coté !
-                            node.dx = dx;
-                            node.dy = 0;
-                            return node;
-                        }
-                    } else return null;
+                    let forcedNeighbours = this.getForcedNeighbours(node, dx, 0);
+                    if (forcedNeighbours.length > 0) {
+                        node.dx = dx;
+                        node.dy = 0;
+                        return node;
+                    }
                 } else return null;
+
 
                 x += dx; //On avance (a la fin car on a besoin pour le cas diagonal de tester le paterne une premiere fois sur place)
             }
@@ -230,8 +233,56 @@ class PathFindingJPS { //https://zerowidth.com/2013/a-visual-explanation-of-jump
                 let node = this.getNode(x, y, 0, 0); //Noeud actuel dans la recursivité = RACINE LOCAL
 
                 if (node != null && node.id != -1) {
-                    if (node.isEqual(this.finishNode)) return node; //On est sur l'arrivée
+                    if (node.isEqual(this.finishNode)) {
+                        node.dx = dx;
+                        node.dy = 0;
+                        return node;
+                    } //On est sur l'arrivée
 
+                    let forcedNeighbours = this.getForcedNeighbours(node, 0, dy);
+                    if (forcedNeighbours.length > 0) {
+                        node.dx = 0;
+                        node.dy = dy;
+                        return node;
+                    }
+                } else return null;
+                y += dy; //On avance (a la fin car on a besoin pour le cas diagonal de tester le paterne une premiere fois sur place)
+            }
+        }
+        return null;
+    }
+
+    getForcedNeighbours(rootNode, dx, dy) {
+        let forcedNeighbours = [];
+
+        if (dx != null && dy != null) {
+
+            if (rootNode != null && rootNode.id != -1) {
+                let x = rootNode.x;
+                let y = rootNode.y;
+
+                if (dx != 0 && dy == 0) {
+                    let nextNode = this.getNode(x, y, dx, 0); //Juste devant
+
+                    if (nextNode != null && nextNode.id != -1) { //est ce que ya de la place devant nous ?
+                        let topNode = this.getNode(x, y, 0, -1);
+                        let nextTopNode = this.getNode(x, y, dx, -1);
+
+                        let bottomNode = this.getNode(x, y, 0, 1);
+                        let nextBottomNode = this.getNode(x, y, dx, 1);
+
+                        if (topNode != null && nextTopNode != null && topNode.id == -1 && nextTopNode.id != -1) {
+                            nextTopNode.dx = dx;
+                            nextTopNode.dy = -1;
+                            forcedNeighbours.push(nextTopNode);
+                        }
+                        if (bottomNode != null && nextBottomNode != null && bottomNode.id == -1 && nextBottomNode.id != -1) { //Obstacle en bas ou en haut et rien à coté !
+                            nextBottomNode.dx = dx;
+                            nextBottomNode.dy = 1;
+                            forcedNeighbours.push(nextBottomNode);
+                        }
+                    }
+                } else if (dx == 0 && dy != 0) {
                     let nextNode = this.getNode(x, y, 0, dy); //Juste devant
 
                     if (nextNode != null && nextNode.id != -1) { //est ce que ya de la place devant nous ?
@@ -241,19 +292,54 @@ class PathFindingJPS { //https://zerowidth.com/2013/a-visual-explanation-of-jump
                         let rightNode = this.getNode(x, y, 1, 0);
                         let nextRightNode = this.getNode(x, y, 1, dy);
 
-                        if ((leftNode != null && nextLeftNode != null && leftNode.id == -1 && nextLeftNode.id != -1) ||
-                            (rightNode != null && nextRightNode != null && rightNode.id == -1 && nextRightNode.id != -1)) { //Obstacle en bas ou en haut et rien à coté !
-                            node.dx = 0;
-                            node.dy = dy;
-                            return node;
+                        if (leftNode != null && nextLeftNode != null && leftNode.id == -1 && nextLeftNode.id != -1) { //Obstacle en bas ou en haut et rien à coté !
+                            nextLeftNode.dx = -1;
+                            nextLeftNode.dy = dy;
+                            forcedNeighbours.push(nextLeftNode);
                         }
-                    } else return null; //Si on arrive dans un cul de sac
-                } else return null;
 
-                y += dy; //On avance (a la fin car on a besoin pour le cas diagonal de tester le paterne une premiere fois sur place)
+                        if (rightNode != null && nextRightNode != null && rightNode.id == -1 && nextRightNode.id != -1) {
+                            nextRightNode.dx = 1;
+                            nextRightNode.dy = dy;
+                            forcedNeighbours.push(nextRightNode);
+                        }
+                    }
+                } else if (dx != 0 && dy != 0) {
+                    let nextFirst = this.getNode(x, y, 0, dy);
+
+                    if (nextFirst != null && nextFirst.id != -1) {
+                        let sideFirst = this.getNode(x, y, -dx, 0);
+                        let nextSideFirst = this.getNode(x, y, -dx, dy);
+
+                        if (sideFirst != null && nextSideFirst != null && sideFirst.id == -1 && nextSideFirst.id != -1) {
+                            nextSideFirst.dx = -dx;
+                            nextSideFirst.dy = dy;
+                            forcedNeighbours.push(nextSideFirst);
+                        }
+                    }
+
+
+                    let nextSecond = this.getNode(x, y, dx, 0);
+
+                    if (nextSecond != null && nextSecond.id != -1) {
+                        let sideSecond = this.getNode(x, y, 0, -dy);
+                        let nextSideSecond = this.getNode(x, y, dx, -dy);
+
+                        if (sideSecond != null && nextSideSecond != null && sideSecond.id == -1 && nextSideSecond.id != -1) {
+                            nextSideSecond.dx = dx;
+                            nextSideSecond.dy = -dy;
+                            forcedNeighbours.push(nextSideSecond);
+                        }
+                    }
+                }
             }
+            // if (forcedNeighbours.length > 0) {
+            //     console.log("Voisins forcés");
+            //     console.log(forcedNeighbours);
+            // }
         }
-        return null;
+
+        return forcedNeighbours;
     }
 
     getNode(x, y, dx, dy) {
@@ -269,3 +355,15 @@ class PathFindingJPS { //https://zerowidth.com/2013/a-visual-explanation-of-jump
         return listFound != null;
     }
 }
+
+
+
+
+
+
+
+
+
+//Ameliorations 
+
+//Les voisins forcés sont "trop" cherché
