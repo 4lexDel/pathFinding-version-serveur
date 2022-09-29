@@ -381,7 +381,6 @@ class PathFindingJPS { //https://zerowidth.com/2013/a-visual-explanation-of-jump
     }
 }
 
-export { PathFindingJPS };
 
 
 
