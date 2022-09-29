@@ -10,8 +10,8 @@ class PathFindingJPS { //https://zerowidth.com/2013/a-visual-explanation-of-jump
 
     constructor(startCoords, finishCoords, grid) {
         this.i = 1;
-        this.startNode = new NodeJPS(0, startCoords.x, startCoords.y);
-        this.finishNode = new NodeJPS(0, finishCoords.x, finishCoords.y);
+        this.startNode = new Node(0, startCoords.x, startCoords.y);
+        this.finishNode = new Node(0, finishCoords.x, finishCoords.y);
 
         this.grid = grid;
 
@@ -29,7 +29,7 @@ class PathFindingJPS { //https://zerowidth.com/2013/a-visual-explanation-of-jump
 
         for (var x = 0; x < this.nodes.length; x++) {
             for (var y = 0; y < this.nodes[0].length; y++) { //Create nodes instances
-                this.nodes[x][y] = new NodeJPS(grid[x][y], x, y);
+                this.nodes[x][y] = new Node(grid[x][y], x, y);
             }
         }
 
@@ -80,8 +80,8 @@ class PathFindingJPS { //https://zerowidth.com/2013/a-visual-explanation-of-jump
 
                 currentPath = currentPath.parentNode; //On remonte le chemin avec les liens de parenté
             }
-            // console.log("PATH : ");
-            // console.log(this.pathList);
+            //console.log("PATH : ");
+            //console.log(this.pathList);
             return 1; //Path found !!
         }
 
@@ -119,18 +119,35 @@ class PathFindingJPS { //https://zerowidth.com/2013/a-visual-explanation-of-jump
         if (node.dx == null && node.dy == null) { //Toutes les directions au debut
             jumpPoints = jumpPoints.concat(this.getJumpPointFromNodeInAllDirection(node));
         } else {
-            jumpPoints.push(this.getJumpPoint(node, node.dx, node.dy)); //On prolonge l'ancien noeud !
+            jumpPoints.push(this.getJumpPoint(node, node.dx, 0)); //horizontal
 
             if (node.dx != 0 && node.dy != 0) { //diago
+                jumpPoints.push(this.getJumpPoint(node, node.dx, node.dy)); //On prolonge l'ancien noeud !
                 jumpPoints.push(this.getJumpPoint(node, node.dx, 0)); //horizontal
                 jumpPoints.push(this.getJumpPoint(node, 0, node.dy)); //vertical
+            } else if (node.dx != 0 && node.dy == 0) {
+                jumpPoints.push(this.getJumpPoint(node, node.dx, 0)); //diago 1
+                jumpPoints.push(this.getJumpPoint(node, node.dx, 1)); //diago 1
+                jumpPoints.push(this.getJumpPoint(node, node.dx, -1)); //diago 2
+            } else if (node.dx == 0 && node.dy != 0) {
+                jumpPoints.push(this.getJumpPoint(node, 0, node.dy)); //line
+                jumpPoints.push(this.getJumpPoint(node, 1, node.dy)); //diago 1
+                jumpPoints.push(this.getJumpPoint(node, -1, node.dy)); //diago 2
             }
+            //jumpPoints = jumpPoints.concat(this.getForcedNeighbours(node, node.dx, node.dy)); //ON AJOUTE LES VOISINS FORCES !
+            let neighbours = this.getForcedNeighbours(node, node.dx, node.dy); //ON AJOUTE LES VOISINS FORCES !
 
-            jumpPoints = jumpPoints.concat(this.getForcedNeighbours(node, node.dx, node.dy)); //ON AJOUTE LES VOISINS FORCES !
+            for (let i = 0; i < neighbours.length; i++) {
+                let neighbour = neighbours[i];
+
+                jumpPoints.push(this.getJumpPoint(node, neighbour.dx, neighbour.dy)); //Depuis notre noeud on utilise la position du voisin !
+            }
         }
 
         jumpPoints = jumpPoints.filter((node) => { return node != null });
 
+        //if (jumpPoints.length == 0) jumpPoints = jumpPoints.concat(this.getForcedNeighbours(node, node.dx, node.dy)); //ON AJOUTE LES VOISINS FORCES !
+        //Sa marche pas car il peut tres bien y avoir des noeuds mais pour autant ca mene a rien !
         return jumpPoints;
     }
 
@@ -172,6 +189,12 @@ class PathFindingJPS { //https://zerowidth.com/2013/a-visual-explanation-of-jump
                 let secondSideNode = this.getNode(x, y - dy, 0, 0);
 
                 if ((node != null && node.id != -1) && (firstSideNode != null && secondSideNode != null && (firstSideNode.id != -1 || secondSideNode.id != -1))) {
+                    if (node.isEqual(this.finishNode)) {
+                        node.dx = dx;
+                        node.dy = 0;
+                        return node;
+                    }
+
                     let forcedNeighbours = this.getForcedNeighbours(node, dx, dy);
                     if (forcedNeighbours.length > 0) {
                         node.dx = dx;
@@ -339,6 +362,8 @@ class PathFindingJPS { //https://zerowidth.com/2013/a-visual-explanation-of-jump
             // }
         }
 
+        forcedNeighbours = forcedNeighbours.filter((node) => { return node != null });
+
         return forcedNeighbours;
     }
 
@@ -356,6 +381,8 @@ class PathFindingJPS { //https://zerowidth.com/2013/a-visual-explanation-of-jump
     }
 }
 
+export { PathFindingJPS };
+
 
 
 
@@ -367,3 +394,5 @@ class PathFindingJPS { //https://zerowidth.com/2013/a-visual-explanation-of-jump
 //Ameliorations 
 
 //Les voisins forcés sont "trop" cherché
+
+//Un voisins forcés permet de débloquer une direction !
