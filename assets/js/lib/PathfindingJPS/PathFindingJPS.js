@@ -10,8 +10,8 @@ class PathFindingJPS { //https://zerowidth.com/2013/a-visual-explanation-of-jump
 
     constructor(startCoords, finishCoords, grid) {
         this.i = 1;
-        this.startNode = new Node(0, startCoords.x, startCoords.y);
-        this.finishNode = new Node(0, finishCoords.x, finishCoords.y);
+        this.startNode = new NodeJPS(0, startCoords.x, startCoords.y);
+        this.finishNode = new NodeJPS(0, finishCoords.x, finishCoords.y);
 
         this.grid = grid;
 
@@ -29,7 +29,7 @@ class PathFindingJPS { //https://zerowidth.com/2013/a-visual-explanation-of-jump
 
         for (var x = 0; x < this.nodes.length; x++) {
             for (var y = 0; y < this.nodes[0].length; y++) { //Create nodes instances
-                this.nodes[x][y] = new Node(grid[x][y], x, y);
+                this.nodes[x][y] = new NodeJPS(grid[x][y], x, y);
             }
         }
 
